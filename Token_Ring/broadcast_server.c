@@ -241,7 +241,8 @@ int main(int argc, char *argv[])
         //printf("Received Data: %s\n",tokenBuff);
 
         //Process TokenData and Message to be send
-        
+
+        printf("%s\n",tokenBuff);
         tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
         appBuff=getData(tokenBuff,previous_token);
     
@@ -267,7 +268,7 @@ int main(int argc, char *argv[])
             close(app_fd);
         }
 
-        printf("%d\n",token);
+        
      }
     return 0;
 }
