@@ -164,14 +164,15 @@ int main(int argc, char *argv[])
 	int listenfd = 0, connfd = 0, token_listenfd=0,token_connfd=0,n,token=0,i=0,token_sendfd=0,previous_token,app_fd=0;
     fd_set fd;
     struct timeval tv;
-
+    int broadcast=1;
     struct sockaddr_in serv_addr, broadcast_serv_addr, token_recv_addr, app_addr; 
     char recvBuff[1024],sendBuff[1024];
     char * tokenBuff=malloc(sizeof(char)*1025); 
     char * appBuff=malloc(sizeof(char)*1025);
-    listenfd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
+    listenfd = socket(AF_INET, SOCK_DGRAM|SOCK_NONBLOCK, 0);
     token_listenfd = socket(AF_INET, SOCK_STREAM , 0);
-    app_fd = socket(AF_INET, SOCK_STREAM , 0);
+    app_fd = socket(AF_INET, SOCK_DGRAM , 0);
+    
     memset(&serv_addr, '0', sizeof(serv_addr));
     memset(&broadcast_serv_addr, '0', sizeof(broadcast_serv_addr));
     memset(recvBuff, '0', sizeof(recvBuff)); 
@@ -183,17 +184,21 @@ int main(int argc, char *argv[])
     memset(&app_addr, '0', sizeof(serv_addr)); 
     app_addr.sin_family = AF_INET;
     app_addr.sin_port = htons(atoi(argv[6]));  //Broadcast Server Port
-    inet_pton(AF_INET, "127.0.0.1", &app_addr.sin_addr);
+    inet_pton(AF_INET, "127.255.255.255", &app_addr.sin_addr);
+    memset(app_addr.sin_zero, '\0', sizeof (app_addr.sin_zero));
 
     broadcast_serv_addr.sin_family = AF_INET;
     inet_pton(AF_INET, argv[1], &broadcast_serv_addr.sin_addr);
     broadcast_serv_addr.sin_port = htons(atoi(argv[2])); 
 	token_recv_addr.sin_family = AF_INET;
     inet_pton(AF_INET, argv[3], &token_recv_addr.sin_addr);
-    token_recv_addr.sin_port = htons(atoi(argv[4]));     
+    token_recv_addr.sin_port = htons(atoi(argv[4]));
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0)
+        printf("ERROR\n");     
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT,&(int){ 1 }, sizeof(int));
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
     bind(token_listenfd, (struct sockaddr*)&broadcast_serv_addr, sizeof(broadcast_serv_addr)); 
-    listen(listenfd, 10); 
+    //listen(listenfd, 10); 
     listen(token_listenfd,10);
 
 
@@ -202,18 +207,22 @@ int main(int argc, char *argv[])
     {
 
                    //Receive Message from Application
-        connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
-        if(connfd == -1)
+        //connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+        n=recv(listenfd,recvBuff,sizeof(recvBuff)-1,0);
+        if(n == -1)
         {
+            //printf("HAHAHA\n");
         	recvBuff[0]='\0';
         }
         else
         {
-        	n = read(connfd, recvBuff, sizeof(recvBuff)-1);
+        	//n = read(connfd, recvBuff, sizeof(recvBuff)-1);
+            //printf("HUHUHU\n");
         	recvBuff[n] = 0;
-    //    	printf("%s",recvBuff);               
-    		close(connfd);
+        	printf("%s",recvBuff);               
+    
     	}
+        close(connfd);
 
 
                 
@@ -230,7 +239,8 @@ int main(int argc, char *argv[])
     	{
 
     		token_connfd = accept(token_listenfd, (struct sockaddr*)NULL, NULL); 
-        	n = read(token_connfd, tokenBuff, sizeof(tokenBuff)-1);
+        	n = read(token_connfd, tokenBuff, sizeof(char)*1025);
+            printf("n=%d\n", n);
         	close(token_connfd);
             tokenBuff[n] = '\0';
             token=atoi(extractData(tokenBuff,0));
@@ -242,7 +252,7 @@ int main(int argc, char *argv[])
 
         //Process TokenData and Message to be send
 
-        printf("%s\n",tokenBuff);
+        //printf("%s\n",tokenBuff);
         appBuff=getData(tokenBuff,previous_token);
 
         tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
@@ -261,20 +271,28 @@ int main(int argc, char *argv[])
         token_sendfd = socket(AF_INET, SOCK_STREAM, 0);
         connect(token_sendfd, (struct sockaddr *)&token_recv_addr, sizeof(token_recv_addr));
         snprintf(sendBuff, sizeof(sendBuff),"%s" ,tokenBuff);
-        printf("%s;%s\n",tokenBuff,sendBuff);
+        
         write(token_sendfd, sendBuff, strlen(sendBuff));  
         close(token_sendfd);
 
         
         
-        // if(recvBuff[0]!='\0')
-        // {
-        //     connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
-        //     write(app_fd, appBuff, strlen(appBuff)); 
-        //     close(app_fd);
-        // }
+        if(appBuff[0]!='\0')
+        {
+            // connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
+            // snprintf(sendBuff, sizeof(sendBuff),"%s" ,appBuff);
+            // printf("%s",sendBuff);
+            // write(app_fd, sendBuff, strlen(sendBuff)); 
+            // printf("%s",sendBuff);
+            // close(app_fd);
+            if(setsockopt(app_fd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
+                printf("ERROR\n");
 
-        sleep(1);
+            snprintf(sendBuff, sizeof(sendBuff),"%s" ,appBuff);
+            n=sendto(app_fd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));
+        }
+
+         sleep(1);
      }
     return 0;
 }

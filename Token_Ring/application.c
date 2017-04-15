@@ -90,12 +90,13 @@ void printData(char * str)
 int app_send(void*  arguments)
 {
     int sockfd = 0, n = 0;
+    int set_option_on=1;
     char sendBuff[1024];
     struct sockaddr_in serv_addr; 
     struct arg_struct *args=arguments;
     int port= args->s_port;
     memset(sendBuff, '0',sizeof(sendBuff));
-    if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
         printf("\n Error : Could not create socket \n");
         return 1;
@@ -114,15 +115,11 @@ int app_send(void*  arguments)
     while(1)
     {
         scanf("%d",&n);
-        if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-        {
-            printf("\n Error : Connect Failed \n");
-            return 1;
-        }
+        
 
         snprintf(sendBuff, sizeof(sendBuff), "Message From Process: %d",args->process_no); 
-        write(sockfd, sendBuff, strlen(sendBuff)); 
-        close(sockfd);
+        n=sendto(sockfd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&serv_addr, sizeof(serv_addr)); 
+        //close(sockfd);
     }
 
 
@@ -136,8 +133,8 @@ int app_receive(void* arguments)
     struct sockaddr_in serv_addr; 
     struct arg_struct *args=arguments;
     int port= args->r_port;
-
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    int set_option_on=1;
+    listenfd = socket(AF_INET, SOCK_DGRAM, 0);
 
     memset(recvBuff, '0', sizeof(recvBuff)); 
     memset(&serv_addr, '0', sizeof(serv_addr));
@@ -146,19 +143,27 @@ int app_receive(void* arguments)
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(port);
 
+    if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*) &set_option_on, sizeof(set_option_on))==-1)
+        printf("ERROR\n");
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
-    listen(listenfd, 10); 
+    //listen(listenfd, 10); 
 
 
     while(1)
     {
-        connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
-        printf("HUHUHU\n");
-        n = read(connfd, recvBuff, sizeof(recvBuff)-1);
-        recvBuff[n] = 0;
-        printf("HAHAHA %s\n",recvBuff);
-        printData(recvBuff);               
-        close(connfd);
+        // connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+        // printf("HUHUHU\n");
+        // n = read(connfd, recvBuff, sizeof(recvBuff)-1);
+        // recvBuff[n] = 0;
+        // printf("HAHAHA %s\n",recvBuff);
+        // printData(recvBuff);               
+        // close(connfd);
+
+        n=recv(listenfd,recvBuff,sizeof(recvBuff)-1,0);
+        if (n>0){
+            recvBuff[n] = 0;
+            printData(recvBuff);
+        }
     }
 
 }
@@ -173,8 +178,8 @@ int main(int argc, char* argv[])
     args.process_no=atoi(argv[3]);
 
     pthread_create(&sid, NULL, (void*)&app_send, (void *)&args);
-    //pthread_create(&rid, NULL, (void*)&app_receive, (void *)&args);
+    pthread_create(&rid, NULL, (void*)&app_receive, (void *)&args);
     pthread_join(sid,&res);
-   // pthread_join(rid,&res);
+    pthread_join(rid,&res);
     return 0;
 }
