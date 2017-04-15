@@ -256,7 +256,8 @@ int main(int argc, char *argv[])
 
         token_sendfd = socket(AF_INET, SOCK_STREAM, 0);
         connect(token_sendfd, (struct sockaddr *)&token_recv_addr, sizeof(token_recv_addr));
-        snprintf(sendBuff, sizeof(sendBuff),"%s\n" ,tokenBuff);
+        snprintf(sendBuff, sizeof(sendBuff),"%s" ,tokenBuff);
+        printf("%s;%s\n",tokenBuff,sendBuff);
         write(token_sendfd, sendBuff, strlen(sendBuff));  
         close(token_sendfd);
 
