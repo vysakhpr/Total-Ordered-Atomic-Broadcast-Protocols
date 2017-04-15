@@ -242,8 +242,9 @@ int main(int argc, char *argv[])
 
         //Process TokenData and Message to be send
 
-        
+        printf("%s\n",tokenBuff);
         tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
+
         appBuff=getData(tokenBuff,previous_token);
     
         if(recvBuff[0]!='\0')
@@ -260,7 +261,7 @@ int main(int argc, char *argv[])
         close(token_sendfd);
 
         
-        printf("%d;%s\n",token,appBuff);
+        
         // if(recvBuff[0]!='\0')
         // {
         //     connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
