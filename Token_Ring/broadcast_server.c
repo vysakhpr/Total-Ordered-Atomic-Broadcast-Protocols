@@ -14,7 +14,7 @@
 char * extractData(char* str, int n)
 {
     int i=n+1,j=0,k=0;
-    char* buff=malloc(sizeof(char)*1024);
+    char* buff=malloc(sizeof(char)*100);
     while(1)
     {
         while(str[j]!='|')
@@ -38,7 +38,7 @@ char * extractData(char* str, int n)
 int extractToken( char * str)
 {
     int i=0,token;
-    char tokenbuff[1024];
+    char tokenbuff[100];
     while(str[i]!='~')
     {
         tokenbuff[i]=str[i];
@@ -51,7 +51,7 @@ int extractToken( char * str)
 char* extractTokenlessData(char * str)
 {
     int i=0,j=0;
-    char* buff=malloc(sizeof(char)*4096);
+    char* buff=malloc(sizeof(char)*1024);
 
     while(str[i++]!='~');
 
@@ -66,8 +66,8 @@ char* extractTokenlessData(char * str)
 char * writeData(char * msg, char * data , int token)
 {
     int i=0,j=0;
-    char* buff=malloc(sizeof(char)*4096);
-    char tokenbuff[1024];
+    char* buff=malloc(sizeof(char)*1024);
+    char tokenbuff[100];
     
     snprintf(tokenbuff, sizeof(tokenbuff),"%d" ,token);    
     while(msg[i]!='\0')
@@ -96,8 +96,8 @@ char * writeData(char * msg, char * data , int token)
 char * attachData(char * msg,char * current_msg ,int current_token, int previous_token)
 {
     int i=0,j=0,k=1,t;
-    char* buff=malloc(sizeof(char)*4096);
-    char tokenbuff[1024];
+    char* buff=malloc(sizeof(char)*1024);
+    char tokenbuff[100];
     char* data;
     snprintf(tokenbuff, sizeof(tokenbuff),"%d" ,current_token);    
     while(tokenbuff[i]!='\0')
@@ -130,7 +130,7 @@ char * attachData(char * msg,char * current_msg ,int current_token, int previous
 char * getData(char * msg, int previous_token)
 {
     int i=0,j=0,k=1,t;
-    char* buff=malloc(sizeof(char)*4096);
+    char* buff=malloc(sizeof(char)*1024);
     char* data;
     buff[0]='\0';
     while(1)
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     struct timeval tv;
 
     struct sockaddr_in serv_addr, broadcast_serv_addr, token_recv_addr, app_addr; 
-    char recvBuff[4096],sendBuff[4096];
+    char recvBuff[1024],sendBuff[1024];
     char * tokenBuff=malloc(sizeof(char)*1025); 
     char * appBuff=malloc(sizeof(char)*1025);
     listenfd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     token_recv_addr.sin_port = htons(atoi(argv[4]));     
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
     bind(token_listenfd, (struct sockaddr*)&broadcast_serv_addr, sizeof(broadcast_serv_addr)); 
-    
+    listen(listenfd, 10); 
     listen(token_listenfd,10);
 
 
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
     while(1)
     {
 
-        listen(listenfd, 10);            //Receive Message from Application
+                   //Receive Message from Application
         connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
         if(connfd == -1)
         {
