@@ -141,7 +141,7 @@ char * getData(char * msg, int previous_token)
             break;
         }
         t=extractToken(data);
-        if(t<=previous_token)
+        if(t<previous_token)
         {
             break;
         }
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
         printf("%s\n",tokenBuff);
         tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
         printf("%s\n",tokenBuff);
-        
+
         appBuff=getData(tokenBuff,previous_token);
     
         if(recvBuff[0]!='\0')
