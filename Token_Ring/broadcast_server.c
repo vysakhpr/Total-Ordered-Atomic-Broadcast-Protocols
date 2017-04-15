@@ -14,7 +14,7 @@
 char * extractData(char* str, int n)
 {
     int i=n+1,j=0,k=0;
-    char* buff=malloc(sizeof(char)*100);
+    char* buff=malloc(sizeof(char)*1024);
     while(1)
     {
         while(str[j]!='|')
@@ -38,7 +38,7 @@ char * extractData(char* str, int n)
 int extractToken( char * str)
 {
     int i=0,token;
-    char tokenbuff[100];
+    char tokenbuff[1024];
     while(str[i]!='~')
     {
         tokenbuff[i]=str[i];
@@ -51,7 +51,7 @@ int extractToken( char * str)
 char* extractTokenlessData(char * str)
 {
     int i=0,j=0;
-    char* buff=malloc(sizeof(char)*1024);
+    char* buff=malloc(sizeof(char)*4096);
 
     while(str[i++]!='~');
 
@@ -66,8 +66,8 @@ char* extractTokenlessData(char * str)
 char * writeData(char * msg, char * data , int token)
 {
     int i=0,j=0;
-    char* buff=malloc(sizeof(char)*1024);
-    char tokenbuff[100];
+    char* buff=malloc(sizeof(char)*4096);
+    char tokenbuff[1024];
     
     snprintf(tokenbuff, sizeof(tokenbuff),"%d" ,token);    
     while(msg[i]!='\0')
@@ -96,8 +96,8 @@ char * writeData(char * msg, char * data , int token)
 char * attachData(char * msg,char * current_msg ,int current_token, int previous_token)
 {
     int i=0,j=0,k=1,t;
-    char* buff=malloc(sizeof(char)*1024);
-    char tokenbuff[100];
+    char* buff=malloc(sizeof(char)*4096);
+    char tokenbuff[1024];
     char* data;
     snprintf(tokenbuff, sizeof(tokenbuff),"%d" ,current_token);    
     while(tokenbuff[i]!='\0')
@@ -130,7 +130,7 @@ char * attachData(char * msg,char * current_msg ,int current_token, int previous
 char * getData(char * msg, int previous_token)
 {
     int i=0,j=0,k=1,t;
-    char* buff=malloc(sizeof(char)*1024);
+    char* buff=malloc(sizeof(char)*4096);
     char* data;
     buff[0]='\0';
     while(1)
