@@ -72,7 +72,7 @@ char* extractTokenlessData(char * str)
 
 void printData(char * str)
 {
-    int k=1,token;
+    int k=0,token;
     char* data=malloc(sizeof(char)*1024);    
     char* msg=malloc(sizeof(char)*1024);    
     while(1)
@@ -120,7 +120,7 @@ int app_send(void*  arguments)
             return 1;
         }
 
-        snprintf(sendBuff, sizeof(sendBuff), "Message From Process: %d\n",args->process_no); 
+        snprintf(sendBuff, sizeof(sendBuff), "Message From Process: %d",args->process_no); 
         write(sockfd, sendBuff, strlen(sendBuff)); 
         close(sockfd);
     }
@@ -149,11 +149,14 @@ int app_receive(void* arguments)
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
     listen(listenfd, 10); 
 
+
     while(1)
     {
         connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
+        printf("HUHUHU\n");
         n = read(connfd, recvBuff, sizeof(recvBuff)-1);
         recvBuff[n] = 0;
+        printf("HAHAHA %s\n",recvBuff);
         printData(recvBuff);               
         close(connfd);
     }
