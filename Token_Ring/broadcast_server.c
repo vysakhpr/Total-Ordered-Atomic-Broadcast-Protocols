@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     struct timeval tv;
 
     struct sockaddr_in serv_addr, broadcast_serv_addr, token_recv_addr, app_addr; 
-    char recvBuff[1025],sendBuff[1024];
+    char recvBuff[4096],sendBuff[4096];
     char * tokenBuff=malloc(sizeof(char)*1025); 
     char * appBuff=malloc(sizeof(char)*1025);
     listenfd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     token_recv_addr.sin_port = htons(atoi(argv[4]));     
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
     bind(token_listenfd, (struct sockaddr*)&broadcast_serv_addr, sizeof(broadcast_serv_addr)); 
-    listen(listenfd, 10); 
+    
     listen(token_listenfd,10);
 
 
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
     while(1)
     {
 
-                   //Receive Message from Application
+        listen(listenfd, 10);            //Receive Message from Application
         connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
         if(connfd == -1)
         {
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 
         //Process TokenData and Message to be send
 
-        printf("%s\n",tokenBuff);
+        
         tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
         appBuff=getData(tokenBuff,previous_token);
     
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
         close(token_sendfd);
 
         
-
+        printf("%d;%s\n",token,appBuff);
         if(recvBuff[0]!='\0')
         {
             connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
             close(app_fd);
         }
 
-        
+        sleep(1);
      }
     return 0;
 }
