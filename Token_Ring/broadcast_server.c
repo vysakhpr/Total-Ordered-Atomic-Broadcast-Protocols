@@ -243,10 +243,13 @@ int main(int argc, char *argv[])
         //Process TokenData and Message to be send
 
         printf("%s\n",tokenBuff);
-        tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
-        printf("%s\n",tokenBuff);
-
         appBuff=getData(tokenBuff,previous_token);
+
+        tokenBuff=attachData(tokenBuff,recvBuff,token,previous_token);
+
+
+        
+        printf("%s\n",appBuff);
     
         if(recvBuff[0]!='\0')
             previous_token=token;
