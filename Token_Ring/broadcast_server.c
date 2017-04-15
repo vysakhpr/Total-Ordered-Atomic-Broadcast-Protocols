@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     char recvBuff[1024],sendBuff[1024];
     char * tokenBuff=malloc(sizeof(char)*1025); 
     char * appBuff=malloc(sizeof(char)*1025);
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    listenfd = socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0);
     token_listenfd = socket(AF_INET, SOCK_STREAM , 0);
     app_fd = socket(AF_INET, SOCK_STREAM , 0);
     memset(&serv_addr, '0', sizeof(serv_addr));
@@ -261,12 +261,12 @@ int main(int argc, char *argv[])
 
         
         printf("%d;%s\n",token,appBuff);
-        if(recvBuff[0]!='\0')
-        {
-            connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
-            write(app_fd, appBuff, strlen(appBuff)); 
-            close(app_fd);
-        }
+        // if(recvBuff[0]!='\0')
+        // {
+        //     connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
+        //     write(app_fd, appBuff, strlen(appBuff)); 
+        //     close(app_fd);
+        // }
 
         sleep(1);
      }

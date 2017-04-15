@@ -173,8 +173,8 @@ int main(int argc, char* argv[])
     args.process_no=atoi(argv[3]);
 
     pthread_create(&sid, NULL, (void*)&app_send, (void *)&args);
-    pthread_create(&rid, NULL, (void*)&app_receive, (void *)&args);
+    //pthread_create(&rid, NULL, (void*)&app_receive, (void *)&args);
     pthread_join(sid,&res);
-    pthread_join(rid,&res);
+   // pthread_join(rid,&res);
     return 0;
 }
