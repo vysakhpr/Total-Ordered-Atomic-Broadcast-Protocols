@@ -17,6 +17,76 @@ struct arg_struct
     int process_no;
 };
 
+char * extractData(char* str, int n)
+{
+    int i=n+1,j=0,k=0;
+    char* buff=malloc(sizeof(char)*100);
+    while(1)
+    {
+        while(str[j]!='|')
+        {
+            if(str[j]=='\0')
+                return "\0";
+            buff[k++]=str[j++];
+        }
+        if(i==1)
+        {
+            buff[k]='\0';
+            return buff;
+        }
+        k=0;
+        buff[k]='\0';
+        j++;
+        i--;
+    }
+}
+
+
+int extractToken( char * str)
+{
+    int i=0,token;
+    char tokenbuff[100];
+    while(str[i]!='~')
+    {
+        tokenbuff[i]=str[i];
+        i++;
+    }
+    tokenbuff[i]='\0';
+    return atoi(tokenbuff);
+}
+
+char* extractTokenlessData(char * str)
+{
+    int i=0,j=0;
+    char* buff=malloc(sizeof(char)*1024);
+
+    while(str[i++]!='~');
+
+    while(str[i]!='|')
+    {
+        buff[j++]=str[i++];
+    }
+    buff[j]='\0';
+    return buff;
+}
+
+void printData(char * str)
+{
+    int k=1,token;
+    char* data=malloc(sizeof(char)*1024);    
+    char* msg=malloc(sizeof(char)*1024);    
+    while(1)
+    {
+        data=extractData(str,k);
+        if(data[0]=='\0')
+            return;
+        token=extractToken(str);
+        msg=extractTokenlessData(str);
+        printf("Token Number: %d ; %s\n",token, msg);
+        k=k+1;
+    }
+}
+
 int app_send(void*  arguments)
 {
     int sockfd = 0, n = 0;
@@ -84,7 +154,7 @@ int app_receive(void* arguments)
         connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
         n = read(connfd, recvBuff, sizeof(recvBuff)-1);
         recvBuff[n] = 0;
-        printf("Received: %s",recvBuff);               
+        printData(recvBuff);               
         close(connfd);
     }
 
