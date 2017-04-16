@@ -88,6 +88,8 @@ void token_ring(void * arguments)
     inet_pton(AF_INET, "127.255.255.255", &app_addr.sin_addr);
     memset(app_addr.sin_zero, '\0', sizeof (app_addr.sin_zero));
 
+
+
     broadcast_serv_addr.sin_family = AF_INET;
     inet_pton(AF_INET, args->token_self_ip, &broadcast_serv_addr.sin_addr);
     broadcast_serv_addr.sin_port = htons(args->token_self_port); 
@@ -138,6 +140,7 @@ void token_ring(void * arguments)
                 token=token+1;
         }
 
+
         // if(recvBuff[0]!='\0')
         // {
         //     if(setsockopt(broadcastfd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
@@ -151,7 +154,7 @@ void token_ring(void * arguments)
         token_sendfd = socket(AF_INET, SOCK_STREAM, 0);
         connect(token_sendfd, (struct sockaddr *)&token_recv_addr, sizeof(token_recv_addr));
         snprintf(sendBuff, sizeof(sendBuff),"%d" ,token);
-        
+        printf("%s\n",sendBuff);
         write(token_sendfd, sendBuff, strlen(sendBuff));  
         close(token_sendfd);
 
@@ -193,7 +196,7 @@ int main(int argc, char *argv[])
     args.token_self_ip=argv[1];
     args.token_self_port=atoi(argv[2]);
     args.token_sender_ip=argv[3];
-    args.token_self_port=atoi(argv[4]);
+    args.token_sender_port=atoi(argv[4]);
     args.broadcast_ip=argv[5];
     args.broadcast_port=atoi(argv[6]);
     args.application_sender_port=atoi(argv[7]);
