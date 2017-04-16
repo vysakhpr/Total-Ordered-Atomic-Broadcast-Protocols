@@ -112,7 +112,6 @@ void token_ring(void * arguments)
         }
         close(connfd);
        
-        //Receive Token Data from Broadcast Servers
         if(args->is_starter == 1 && i==0)
         {
             token=0;

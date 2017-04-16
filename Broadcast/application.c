@@ -146,19 +146,10 @@ int app_receive(void* arguments)
     if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*) &set_option_on, sizeof(set_option_on))==-1)
         printf("ERROR\n");
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
-    //listen(listenfd, 10); 
 
 
     while(1)
     {
-        // connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
-        // printf("HUHUHU\n");
-        // n = read(connfd, recvBuff, sizeof(recvBuff)-1);
-        // recvBuff[n] = 0;
-        // printf("HAHAHA %s\n",recvBuff);
-        // printData(recvBuff);               
-        // close(connfd);
-
         n=recv(listenfd,recvBuff,sizeof(recvBuff)-1,0);
         if (n>0){
             recvBuff[n] = 0;
