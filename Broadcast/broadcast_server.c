@@ -55,21 +55,19 @@ char * writeData(char * data , int token)
 void token_ring(void * arguments)
 {
     struct arg_struct *args=arguments;
-    int listenfd = 0, connfd = 0, token_listenfd=0,token_connfd=0,n,token=0,i=0,token_sendfd=0,app_fd=0,broadcastfd=0;
+    int listenfd = 0, connfd = 0, token_listenfd=0,token_connfd=0,n,token=0,i=0,token_sendfd=0,broadcastfd=0;
     int broadcast=1;
-    struct sockaddr_in serv_addr, broadcast_serv_addr, token_recv_addr, app_addr, broadcast_addr; 
+    struct sockaddr_in serv_addr, broadcast_serv_addr, token_recv_addr, broadcast_addr; 
     char recvBuff[1024],sendBuff[1024];
     char * tokenBuff=malloc(sizeof(char)*1025); 
-    //char * appBuff=malloc(sizeof(char)*1025);
     listenfd = socket(AF_INET, SOCK_DGRAM|SOCK_NONBLOCK, 0);
     token_listenfd = socket(AF_INET, SOCK_STREAM , 0);
-    app_fd = socket(AF_INET, SOCK_DGRAM , 0);
     broadcastfd=socket(AF_INET,SOCK_DGRAM,0);
     
     memset(&serv_addr, '0', sizeof(serv_addr));
     memset(&broadcast_serv_addr, '0', sizeof(broadcast_serv_addr));
     memset(&broadcast_addr,'0',sizeof(broadcast_addr));
-    memset(&app_addr, '0', sizeof(serv_addr)); 
+    
 
 
     memset(recvBuff, '0', sizeof(recvBuff)); 
@@ -82,12 +80,6 @@ void token_ring(void * arguments)
     broadcast_addr.sin_port=htons(args->broadcast_port);
     inet_pton(AF_INET,args->broadcast_ip,&broadcast_addr.sin_addr);
     memset(broadcast_addr.sin_zero,'\0',sizeof(broadcast_addr.sin_zero));
-    
-    app_addr.sin_family = AF_INET;
-    app_addr.sin_port = htons(args->application_receiver_port);  //Broadcast Server Port
-    inet_pton(AF_INET, "127.255.255.255", &app_addr.sin_addr);
-    memset(app_addr.sin_zero, '\0', sizeof (app_addr.sin_zero));
-
 
 
     broadcast_serv_addr.sin_family = AF_INET;
@@ -103,7 +95,6 @@ void token_ring(void * arguments)
     setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT,&(int){ 1 }, sizeof(int));
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
     bind(token_listenfd, (struct sockaddr*)&broadcast_serv_addr, sizeof(broadcast_serv_addr)); 
-    //listen(listenfd, 10); 
     listen(token_listenfd,10);
 
 
@@ -181,6 +172,53 @@ void token_ring(void * arguments)
 }
 
 
+void receive_broadcast(void * arguments)
+{
+    int listenfd=0,app_fd=0, connfd=0,n,broadcast=1;
+    char recvBuff[1025],sendBuff[1025];
+    char * appBuff=malloc(sizeof(char)*1025);
+    struct sockaddr_in serv_addr,app_addr; 
+    struct arg_struct *args=arguments;
+    int port= args->broadcast_port;
+    int set_option_on=1;
+    listenfd = socket(AF_INET, SOCK_DGRAM, 0);
+    app_fd = socket(AF_INET, SOCK_DGRAM , 0);
+
+
+
+    memset(recvBuff, '0', sizeof(recvBuff)); 
+    memset(sendBuff, '0', sizeof(sendBuff)); 
+    memset(&serv_addr, '0', sizeof(serv_addr));
+    memset(&app_addr, '0', sizeof(serv_addr)); 
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = htons(port);
+
+    app_addr.sin_family = AF_INET;
+    app_addr.sin_port = htons(args->application_receiver_port);  //Broadcast Server Port
+    inet_pton(AF_INET, "127.255.255.255", &app_addr.sin_addr);
+    memset(app_addr.sin_zero, '\0', sizeof (app_addr.sin_zero));
+
+
+    if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*) &set_option_on, sizeof(set_option_on))==-1)
+        printf("ERROR\n");
+    bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
+    while(1)
+    {
+        n=recv(listenfd,recvBuff,sizeof(recvBuff)-1,0);
+        if (n>0){
+            recvBuff[n] = 0;
+
+            if(setsockopt(app_fd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
+                printf("ERROR\n");
+            snprintf(sendBuff, sizeof(sendBuff),"%s" ,recvBuff);
+            n=sendto(app_fd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));   
+        }
+    }
+}
+
+
 int main(int argc, char *argv[])
 {	
 	if(argc!=9 && argc!=10)
@@ -208,9 +246,9 @@ int main(int argc, char *argv[])
 
 
     pthread_create(&sid, NULL, (void*)&token_ring, (void *)&args);
-    //pthread_create(&rid, NULL, (void*)&app_receive, (void *)&args);
+    pthread_create(&rid, NULL, (void*)&receive_broadcast, (void *)&args);
     pthread_join(sid,NULL);
-    //pthread_join(rid,NULL);
+    pthread_join(rid,NULL);
     
 
 	return 0;
