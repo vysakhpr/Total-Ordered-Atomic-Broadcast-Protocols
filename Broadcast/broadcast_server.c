@@ -138,14 +138,14 @@ void token_ring(void * arguments)
                 token=token+1;
         }
 
-        if(recvBuff[0]!='\0')
-        {
-            if(setsockopt(broadcastfd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
-                printf("ERROR\n");
-            tokenBuff=writeData(recvBuff,token);
-            snprintf(sendBuff, sizeof(sendBuff),"%s" ,tokenBuff);
-            n=sendto(broadcastfd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));
-        }
+        // if(recvBuff[0]!='\0')
+        // {
+        //     if(setsockopt(broadcastfd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
+        //         printf("ERROR\n");
+        //     tokenBuff=writeData(recvBuff,token);
+        //     snprintf(sendBuff, sizeof(sendBuff),"%s" ,tokenBuff);
+        //     n=sendto(broadcastfd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));
+        // }
 
 
         token_sendfd = socket(AF_INET, SOCK_STREAM, 0);
