@@ -132,14 +132,14 @@ void token_ring(void * arguments)
         }
 
 
-        // if(recvBuff[0]!='\0')
-        // {
-        //     if(setsockopt(broadcastfd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
-        //         printf("ERROR\n");
-        //     tokenBuff=writeData(recvBuff,token);
-        //     snprintf(sendBuff, sizeof(sendBuff),"%s" ,tokenBuff);
-        //     n=sendto(broadcastfd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));
-        // }
+        if(recvBuff[0]!='\0')
+        {
+            if(setsockopt(broadcastfd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
+                printf("ERROR\n");
+            tokenBuff=writeData(recvBuff,token);
+            snprintf(sendBuff, sizeof(sendBuff),"%s" ,tokenBuff);
+            n=sendto(broadcastfd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&broadcast_addr, sizeof(broadcast_addr));
+        }
 
 
         token_sendfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -149,22 +149,6 @@ void token_ring(void * arguments)
         write(token_sendfd, sendBuff, strlen(sendBuff));  
         close(token_sendfd);
 
-        
-        
-        // if(appBuff[0]!='\0')
-        // {
-        //     // connect(app_fd, (struct sockaddr *)&app_addr, sizeof(app_addr));
-        //     // snprintf(sendBuff, sizeof(sendBuff),"%s" ,appBuff);
-        //     // printf("%s",sendBuff);
-        //     // write(app_fd, sendBuff, strlen(sendBuff)); 
-        //     // printf("%s",sendBuff);
-        //     // close(app_fd);
-        //     if(setsockopt(app_fd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
-        //         printf("ERROR\n");
-
-        //     snprintf(sendBuff, sizeof(sendBuff),"%s" ,appBuff);
-        //     n=sendto(app_fd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));
-        // }
 
          sleep(1);
     }
