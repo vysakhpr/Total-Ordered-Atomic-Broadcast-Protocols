@@ -10,6 +10,9 @@
 #include <time.h>
 #include <pthread.h>
 
+time_t start,end;
+float tim;
+
 
 char * extractData(char* str, int n)
 {
@@ -118,6 +121,12 @@ char * attachData(char * msg,char * current_msg ,int current_token, int previous
         t=extractToken(data);
         if(t<=previous_token)
         {
+            if(previous_token!=0)
+            {
+                end=clock();
+                tim=(end-start)/CLOCKS_PER_SEC;
+                printf("Time For Stability :%f\n", tim);
+            }
             break;
         }
         buff=writeData(buff,data,-1);
@@ -143,6 +152,7 @@ char * getData(char * msg, int previous_token)
         t=extractToken(data);
         if(t<previous_token)
         {
+
             break;
         }
         buff=writeData(buff,data,-1);
@@ -240,7 +250,7 @@ int main(int argc, char *argv[])
 
     		token_connfd = accept(token_listenfd, (struct sockaddr*)NULL, NULL); 
         	n = read(token_connfd, tokenBuff, sizeof(char)*1025);
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
         	close(token_connfd);
             tokenBuff[n] = '\0';
             token=atoi(extractData(tokenBuff,0));
@@ -262,7 +272,10 @@ int main(int argc, char *argv[])
         printf("%s\n",appBuff);
     
         if(recvBuff[0]!='\0')
+        {
             previous_token=token;
+            start=clock();
+        }
 
         
 

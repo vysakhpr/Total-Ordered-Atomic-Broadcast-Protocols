@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <arpa/inet.h> 
 #include <pthread.h>
+#include <time.h>
 
 struct arg_struct
 {
