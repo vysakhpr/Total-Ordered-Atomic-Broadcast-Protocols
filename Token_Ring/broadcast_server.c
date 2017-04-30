@@ -10,8 +10,8 @@
 #include <time.h>
 #include <pthread.h>
 
-time_t start,end;
-float tim;
+clock_t start,end;
+double tim;
 
 
 char * extractData(char* str, int n)
@@ -124,7 +124,7 @@ char * attachData(char * msg,char * current_msg ,int current_token, int previous
             if(previous_token!=0)
             {
                 end=clock();
-                tim=(end-start)/CLOCKS_PER_SEC;
+                tim=((double) (end - start)) / CLOCKS_PER_SEC;;
                 printf("Time For Stability :%f\n", tim);
             }
             break;

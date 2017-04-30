@@ -122,7 +122,7 @@ void token_ring(void * arguments)
         {
             token_connfd = accept(token_listenfd, (struct sockaddr*)NULL, NULL); 
             n = read(token_connfd, tokenBuff, sizeof(char)*1025);
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
             close(token_connfd);
             tokenBuff[n] = '\0';
             token=atoi(tokenBuff);
@@ -155,24 +155,71 @@ void token_ring(void * arguments)
 }
 
 
+void receive_stability(void * arguments)
+{
+    clock_t start,end;
+    double tim;
+    int listenfd=0, connfd=0,n,i=0;
+    char recvBuff[1025];
+    struct sockaddr_in serv_addr; 
+    struct arg_struct *args=arguments;
+    int port= 9000;
+    int set_option_on=1;
+    listenfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+
+    memset(recvBuff, '0', sizeof(recvBuff)); 
+    memset(&serv_addr, '0', sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = htons(port);
+
+    if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (char*) &set_option_on, sizeof(set_option_on))==-1)
+        printf("ERROR\n");
+    bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
+    while(1)
+    {
+        n=recv(listenfd,recvBuff,sizeof(recvBuff)-1,0);
+        if (n>0){
+            if(i==0)
+            {
+                start=clock();
+            }
+            i++;
+        }
+
+        if(i==1)
+        {
+            end=clock();
+            tim=((double)(end-start))/CLOCKS_PER_SEC;
+            printf("Time For Stability :%f\n", tim);
+            i=0;
+        }
+    }
+}
+
 void receive_broadcast(void * arguments)
 {
-    int listenfd=0,app_fd=0, connfd=0,n,broadcast=1;
-    char recvBuff[1025],sendBuff[1025];
+    int listenfd=0,app_fd=0, connfd=0,n,broadcast=1,stab_fd=0;
+    char recvBuff[1025],sendBuff[1025],stabBuff[1025];
     char * appBuff=malloc(sizeof(char)*1025);
-    struct sockaddr_in serv_addr,app_addr; 
+    struct sockaddr_in serv_addr,app_addr,stab_addr; 
     struct arg_struct *args=arguments;
     int port= args->broadcast_port;
     int set_option_on=1;
+    int len;
     listenfd = socket(AF_INET, SOCK_DGRAM, 0);
     app_fd = socket(AF_INET, SOCK_DGRAM , 0);
 
 
-
+    memset(stabBuff, '0', sizeof(stabBuff)); 
     memset(recvBuff, '0', sizeof(recvBuff)); 
     memset(sendBuff, '0', sizeof(sendBuff)); 
     memset(&serv_addr, '0', sizeof(serv_addr));
     memset(&app_addr, '0', sizeof(serv_addr)); 
+    memset(&stab_addr, '0', sizeof(serv_addr)); 
+
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -189,14 +236,19 @@ void receive_broadcast(void * arguments)
     bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
     while(1)
     {
-        n=recv(listenfd,recvBuff,sizeof(recvBuff)-1,0);
+        len=sizeof(stab_addr);
+        n=recvfrom(listenfd,recvBuff,sizeof(recvBuff)-1,0,(struct sockaddr *)&stab_addr,(socklen_t *)&len);
         if (n>0){
             recvBuff[n] = 0;
-
+            snprintf(sendBuff, sizeof(sendBuff),"1");
+            stab_addr.sin_port=htons(9000);
+            n=sendto(stab_fd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&stab_addr, sizeof(stab_addr));               
             if(setsockopt(app_fd, SOL_SOCKET, SO_BROADCAST, &broadcast,sizeof(broadcast))==-1)
                 printf("ERROR\n");
             snprintf(sendBuff, sizeof(sendBuff),"%s" ,recvBuff);
             n=sendto(app_fd, sendBuff, strlen(sendBuff), 0,(struct sockaddr *)&app_addr, sizeof(app_addr));   
+
+
         }
     }
 }
@@ -212,7 +264,7 @@ int main(int argc, char *argv[])
 
 
     struct arg_struct args;
-    pthread_t sid,rid;
+    pthread_t sid,rid,kid;
 
     args.token_self_ip=argv[1];
     args.token_self_port=atoi(argv[2]);
@@ -230,8 +282,10 @@ int main(int argc, char *argv[])
 
     pthread_create(&sid, NULL, (void*)&token_ring, (void *)&args);
     pthread_create(&rid, NULL, (void*)&receive_broadcast, (void *)&args);
+    //pthread_create(&kid, NULL, (void*)&receive_stability, (void *)&args);
     pthread_join(sid,NULL);
     pthread_join(rid,NULL);
+    //pthread_join(kid,NULL);
     
 
 	return 0;
